@@ -4,7 +4,8 @@ import java_cup.runtime.XMLElement;
 
 parser code
 {:
-
+    String primera = "t1";
+    int contador = 1;
     public void syntax_error(Symbol cur_token) {
         System.out.println(" Se esperaban: ");
         String esperados = "";
@@ -21,7 +22,20 @@ parser code
     public void report_fatal_error(Symbol cur) {
         System.out.println("unrecovered_syntax_error");
     }
-
+    public String armando = "";
+    public String operar(String izquierdo, String signo, String derecho){
+        if (contador==1){
+            armando+= primera+" = "+izquierdo+" "+signo+" "+derecho+"\n";
+            contador++;
+            return primera;
+        } else {
+            String variable = "t"+contador;
+            armando+= variable+" = "+izquierdo+" "+signo+" "+derecho+"\n";
+            contador++;
+            return variable;
+        }
+    }
+    
     public void imp(String texto){
         System.out.println(texto);
     }
@@ -30,7 +44,9 @@ parser code
 
 terminal SUMA, RESTA, POR, ENTRE, PAR_A, PAR_C, ID, IGUAL, UMINUS, NUMERO, PUNTOC, ERRORLEX;
 
-non terminal inicio, asignaciones, asignacion, expresion;
+non terminal inicio, asignaciones, asignacion;
+
+non terminal String expresion;
 
 precedence left SUMA, RESTA;
 precedence left POR, ENTRE;
@@ -48,18 +64,18 @@ asignaciones::=
 ;
 
 asignacion::=
-    ID IGUAL expresion PUNTOC
+    ID:e1 IGUAL expresion:e2 PUNTOC {: armando+= e1.toString()+" = "+e2.toString()+"\n"; :}
 ;
 
 expresion::=
-    expresion SUMA expresion    {: imp("Se encuentra suma"); :}
-|   expresion POR expresion   {: imp("Se encuentra multi"); :}
-|   expresion ENTRE expresion {: imp("Se encuentra divi"); :}
-|   expresion RESTA expresion {: imp("Se encuentra resta"); :}
-|   RESTA expresion {: imp ("Se encuentra negativo"); :}
+    expresion:e1 SUMA:e2 expresion:e3    {: RESULT = operar(e1.toString(),e2.toString(),e3.toString()); :}
+|   expresion:e1 POR:e2 expresion:e3   {: RESULT = operar(e1.toString(),e2.toString(),e3.toString()); :}
+|   expresion:e1 ENTRE:e2 expresion:e3 {: RESULT = operar(e1.toString(),e2.toString(),e3.toString()); :}
+|   expresion:e1 RESTA:e2 expresion:e3 {: RESULT = operar(e1.toString(),e2.toString(),e3.toString()); :}
+|   RESTA expresion:e1 {: String au = "-"+ e1.toString(); String va = "t"+contador; contador++; armando+= va+" = "+au+"\n"; RESULT = va; :}
 %prec UMINUS
-|   PAR_A expresion PAR_C {: imp("Se encuentra parentesis"); :}
-|   NUMERO {: imp("Se encuentra numero"); :}
-|   ID {: imp("Se encuentra variable"); :}
+|   PAR_A expresion:e1 PAR_C {: RESULT = e1.toString(); :}
+|   NUMERO:e1 {: RESULT = e1.toString(); :}
+|   ID:e1 {: RESULT = e1.toString(); :}
 ;
 
